@@ -185,7 +185,7 @@
     <dependency>
       <groupId>com.google.firebase</groupId>
       <artifactId>firebase-admin</artifactId>
-      <version>9.0.0</version>
+      <version>9.2.0</version>
 
       <!-- firebase-admin has conflicting versions of these artifacts in its dependency tree; for firebase-admin
       9.0.0, we'll need to depend directly on com.google.api-client:google-api-client:1.35.1 and
@@ -321,7 +321,7 @@
     <dependency>
       <groupId>com.amazonaws</groupId>
       <artifactId>dynamodb-lock-client</artifactId>
-      <version>1.1.0</version>
+      <version>1.2.0</version>
       <exclusions>
         <exclusion>
           <groupId>commons-logging</groupId>

@@ -83,7 +83,7 @@
     <simple-grpc.version>0.1.0</simple-grpc.version>
     <slf4j.version>2.0.17</slf4j.version>
     <stripe.version>23.10.0</stripe.version>
-    <swagger.version>2.2.31</swagger.version>
+    <swagger.version>2.2.35</swagger.version>
     <testcontainers.version>1.21.2</testcontainers.version>
 
     <!-- image to use in tests that run localstack via docker. -->

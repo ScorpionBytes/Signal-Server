@@ -11,7 +11,7 @@
   <artifactId>service</artifactId>
 
   <properties>
-    <firebase-admin.version>9.4.3</firebase-admin.version>
+    <firebase-admin.version>9.5.0</firebase-admin.version>
     <java-uuid-generator.version>5.1.0</java-uuid-generator.version>
     <google-androidpublisher.version>v3-rev20250318-2.0.0</google-androidpublisher.version>
     <storekit.version>3.4.0</storekit.version>

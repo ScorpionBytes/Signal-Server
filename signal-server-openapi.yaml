@@ -377,6 +377,7 @@ paths:
           description: "The ID of the device for which to set a name; if omitted,\
             \ the authenticated device will be targeted for a name change"
           format: byte
+          nullable: true
       requestBody:
         content:
           '*/*':
@@ -464,8 +465,8 @@ paths:
           description: Too many attempts
           headers:
             Retry-After:
-              description: "If present, an positive integer indicating the number\
-                \ of seconds before a subsequent attempt could succeed"
+              description: "If present, a positive integer indicating the number of\
+                \ seconds before a subsequent attempt could succeed"
               style: simple
       security:
       - authenticatedAccount: []
@@ -1777,6 +1778,7 @@ paths:
         in: header
         schema:
           type: string
+          nullable: true
       requestBody:
         content:
           application/json:
@@ -1907,6 +1909,7 @@ paths:
         in: header
         schema:
           type: string
+          nullable: true
       responses:
         "200":
           description: "Either a new transfer archive was uploaded for the authenticated\
@@ -2413,15 +2416,15 @@ paths:
               schema:
                 type: object
                 properties:
+                  done:
+                    type: boolean
+                  cancelled:
+                    type: boolean
                   completedExceptionally:
                     type: boolean
                   numberOfDependents:
                     type: integer
                     format: int32
-                  done:
-                    type: boolean
-                  cancelled:
-                    type: boolean
       security:
       - authenticatedAccount: []
   /v1/messages/report/{source}/{messageGuid}:
@@ -2642,15 +2645,15 @@ paths:
               schema:
                 type: object
                 properties:
+                  done:
+                    type: boolean
+                  cancelled:
+                    type: boolean
                   completedExceptionally:
                     type: boolean
                   numberOfDependents:
                     type: integer
                     format: int32
-                  done:
-                    type: boolean
-                  cancelled:
-                    type: boolean
       security:
       - authenticatedAccount: []
       - {}
@@ -2697,15 +2700,6 @@ paths:
                 properties:
                   error:
                     type: string
-        "409":
-          description: Provided level does not match the currency/amount combination
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
       security:
       - authenticatedAccount: []
       - {}
@@ -2733,15 +2727,15 @@ paths:
               schema:
                 type: object
                 properties:
+                  done:
+                    type: boolean
+                  cancelled:
+                    type: boolean
                   completedExceptionally:
                     type: boolean
                   numberOfDependents:
                     type: integer
                     format: int32
-                  done:
-                    type: boolean
-                  cancelled:
-                    type: boolean
       security:
       - authenticatedAccount: []
       - {}
@@ -2750,11 +2744,6 @@ paths:
       tags:
       - OneTimeDonations
       operationId: createPayPalBoost
-      parameters:
-      - name: User-Agent
-        in: header
-        schema:
-          type: string
       requestBody:
         content:
           application/json:
@@ -2769,15 +2758,15 @@ paths:
               schema:
                 type: object
                 properties:
+                  done:
+                    type: boolean
+                  cancelled:
+                    type: boolean
                   completedExceptionally:
                     type: boolean
                   numberOfDependents:
                     type: integer
                     format: int32
-                  done:
-                    type: boolean
-                  cancelled:
-                    type: boolean
       security:
       - authenticatedAccount: []
       - {}
@@ -2979,6 +2968,8 @@ paths:
                 $ref: "#/components/schemas/BatchIdentityCheckResponse"
         "400":
           description: Invalid request format or validation failed.
+        "429":
+          description: Rate limit exceeded.
   /v1/profile:
     put:
       tags:
@@ -3256,6 +3247,7 @@ paths:
         in: header
         schema:
           type: string
+          nullable: true
       requestBody:
         content:
           application/json:
@@ -3300,6 +3292,7 @@ paths:
         in: header
         schema:
           type: string
+          nullable: true
       responses:
         default:
           description: default response
@@ -4027,6 +4020,7 @@ components:
           type: string
           description: A handle that can be included in username links to retrieve
             the stored encrypted username
+          nullable: true
     ConfirmUsernameHashRequest:
       required:
       - zkProof
@@ -4044,6 +4038,7 @@ components:
           type: string
           description: The url-safe base64-encoded encrypted username to be stored
             for username links
+          nullable: true
     AccountIdentifierResponse:
       required:
       - uuid
@@ -4093,11 +4088,25 @@ components:
         registrationId:
           type: integer
           format: int32
+        pniRegistrationId:
+          type: integer
+          format: int32
         name:
-          maxLength: 225
-          minLength: 0
           type: string
           format: byte
+        capabilities:
+          uniqueItems: true
+          type: array
+          nullable: true
+          items:
+            type: string
+            nullable: true
+            enum:
+            - STORAGE
+            - TRANSFER
+            - ATTACHMENT_BACKFILL
+            - SPARSE_POST_QUANTUM_RATCHET
+            - PROFILES_V2
         registrationLock:
           type: string
         unidentifiedAccessKey:
@@ -4105,24 +4114,44 @@ components:
           format: byte
         unrestrictedUnidentifiedAccess:
           type: boolean
-        capabilities:
-          uniqueItems: true
-          type: array
-          items:
-            type: string
-            enum:
-            - STORAGE
-            - TRANSFER
-            - ATTACHMENT_BACKFILL
-            - SPARSE_POST_QUANTUM_RATCHET
         discoverableByPhoneNumber:
           type: boolean
         recoveryPassword:
           type: string
           format: byte
+          nullable: true
+        phoneNumberIdentityRegistrationId:
+          type: integer
+          format: int32
+    DeviceAttributes:
+      type: object
+      properties:
+        fetchesMessages:
+          type: boolean
+        registrationId:
+          type: integer
+          format: int32
         pniRegistrationId:
           type: integer
           format: int32
+        name:
+          maxLength: 225
+          minLength: 0
+          type: string
+          format: byte
+        capabilities:
+          uniqueItems: true
+          type: array
+          nullable: true
+          items:
+            type: string
+            nullable: true
+            enum:
+            - STORAGE
+            - TRANSFER
+            - ATTACHMENT_BACKFILL
+            - SPARSE_POST_QUANTUM_RATCHET
+            - PROFILES_V2
     ApnRegistrationId:
       required:
       - apnRegistrationId
@@ -4196,10 +4225,12 @@ components:
           type: string
           description: "a hash of this account's username, if set"
           format: byte
+          nullable: true
         usernameLinkHandle:
           type: string
           description: "this account's username link handle, if set"
           format: uuid
+          nullable: true
         storageCapable:
           type: boolean
           description: whether any of this account's devices support storage
@@ -4218,6 +4249,7 @@ components:
             \ since epoch"
           format: int64
       description: "If present, the backup level set via /v1/archives/redeem-receipt"
+      nullable: true
     BadgeEntitlement:
       type: object
       properties:
@@ -4321,6 +4353,7 @@ components:
           type: string
           description: "the registration lock password for the new phone number, if\
             \ necessary"
+          nullable: true
         pniIdentityKey:
           $ref: "#/components/schemas/IdentityKey"
         deviceMessages:
@@ -4370,7 +4403,7 @@ components:
       type: object
       properties:
         keyId:
-          maximum: 4294967295
+          maximum: 2147483647
           minimum: 0
           type: integer
           description: |
@@ -4419,7 +4452,7 @@ components:
       type: object
       properties:
         keyId:
-          maximum: 4294967295
+          maximum: 2147483647
           minimum: 0
           type: integer
           description: |
@@ -4497,6 +4530,7 @@ components:
           format: date-time
         userAgent:
           type: string
+          nullable: true
     PhoneNumberDiscoverabilityRequest:
       required:
       - discoverableByPhoneNumber
@@ -4863,6 +4897,7 @@ components:
             type: string
         hostname:
           type: string
+          nullable: true
     DeliveryCertificate:
       type: object
       properties:
@@ -4901,6 +4936,7 @@ components:
         pni:
           type: string
           format: uuid
+          nullable: true
     AnswerPushChallengeRequest:
       required:
       - challenge
@@ -5058,7 +5094,7 @@ components:
             The verification code associated with this device. Must match the verification code
             provided by the server when provisioning this device.
         accountAttributes:
-          $ref: "#/components/schemas/AccountAttributes"
+          $ref: "#/components/schemas/DeviceAttributes"
         aciSignedPreKey:
           $ref: "#/components/schemas/ECSignedPreKey"
         pniSignedPreKey:
@@ -5091,6 +5127,7 @@ components:
           type: string
           description: "Additional data to use to bootstrap a connection between devices,\
             \ in standard unpadded base64."
+          nullable: true
       description: |
         Represents a request from a new device to restore account data by some method.
     RemoteAttachmentError:
@@ -5165,6 +5202,7 @@ components:
       properties:
         authenticated:
           type: object
+          nullable: true
         client:
           $ref: "#/components/schemas/WebSocketClient"
     KeyTransparencyDistinguishedKeyResponse:
@@ -5343,7 +5381,7 @@ components:
       type: object
       properties:
         keyId:
-          maximum: 4294967295
+          maximum: 2147483647
           minimum: 0
           type: integer
           description: |
@@ -5455,6 +5493,8 @@ components:
         token:
           type: string
           format: byte
+          nullable: true
+      nullable: true
     SendMessageResponse:
       type: object
       properties:
@@ -5466,6 +5506,7 @@ components:
       type: object
       properties:
         messages:
+          minItems: 1
           type: array
           items:
             $ref: "#/components/schemas/IncomingMessage"
@@ -5513,6 +5554,7 @@ components:
         accessKeys:
           type: string
           format: byte
+      nullable: true
     Recipient:
       type: object
       properties:
@@ -5550,6 +5592,7 @@ components:
       required:
       - amount
       - currency
+      - level
       - payerId
       - paymentId
       - paymentToken
@@ -5565,10 +5608,11 @@ components:
           description: "The amount to pay in the [currency's minor unit](https://docs.stripe.com/currencies#minor-units)"
           format: int64
         level:
+          minimum: 1
           type: integer
-          description: The level for the boost payment. Assumed to be the boost level
-            if missing
+          description: The level for the boost payment
           format: int64
+          default: 1
         paymentMethod:
           type: string
           description: The payment method
@@ -5600,6 +5644,7 @@ components:
       required:
       - amount
       - currency
+      - level
       type: object
       properties:
         currency:
@@ -5612,10 +5657,11 @@ components:
           description: "The amount to pay in the [currency's minor unit](https://docs.stripe.com/currencies#minor-units)"
           format: int64
         level:
+          minimum: 1
           type: integer
-          description: The level for the boost payment. Assumed to be the boost level
-            if missing
+          description: The level for the boost payment
           format: int64
+          default: 1
         paymentMethod:
           type: string
           description: The payment method
@@ -5652,6 +5698,7 @@ components:
       - amount
       - cancelUrl
       - currency
+      - level
       - returnUrl
       type: object
       properties:
@@ -5665,10 +5712,11 @@ components:
           description: "The amount to pay in the [currency's minor unit](https://docs.stripe.com/currencies#minor-units)"
           format: int64
         level:
+          minimum: 1
           type: integer
-          description: The level for the boost payment. Assumed to be the boost level
-            if missing
+          description: The level for the boost payment
           format: int64
+          default: 1
         paymentMethod:
           type: string
           description: The payment method
@@ -5882,7 +5930,8 @@ components:
           type: string
           format: byte
       description: Expiring profile key credential response. Null if profile version
-        was not found
+        was not found or if the profile version is not current
+      nullable: true
     BatchIdentityCheckResponse:
       type: object
       properties:
@@ -6034,10 +6083,12 @@ components:
           type: string
           description: "a hash of this account's username, if set"
           format: byte
+          nullable: true
         usernameLinkHandle:
           type: string
           description: "this account's username link handle, if set"
           format: uuid
+          nullable: true
         storageCapable:
           type: boolean
           description: whether any of this account's devices support storage
@@ -6229,16 +6280,19 @@ components:
             depending on which processor was used
         outcomeNetworkStatus:
           type: string
+          nullable: true
           externalDocs:
             description: Outcome Network Status
             url: https://stripe.com/docs/api/charges/object#charge_object-outcome-network_status
         outcomeReason:
           type: string
+          nullable: true
           externalDocs:
             description: Outcome Reason
             url: https://stripe.com/docs/api/charges/object#charge_object-outcome-reason
         outcomeType:
           type: string
+          nullable: true
           externalDocs:
             description: Outcome Type
             url: https://stripe.com/docs/api/charges/object#charge_object-outcome-type
@@ -6487,16 +6541,19 @@ components:
           description: Duration in seconds after which next SMS can be requested for
             this session
           format: int64
+          nullable: true
         nextCall:
           type: integer
           description: Duration in seconds after which next voice call can be requested
             for this session
           format: int64
+          nullable: true
         nextVerificationAttempt:
           type: integer
           description: Duration in seconds after which the client can submit a verification
             code for this session
           format: int64
+          nullable: true
         allowedToRequestCode:
           type: boolean
           description: Whether it is allowed to request a verification code for this
@@ -6528,24 +6585,30 @@ components:
           type: string
           description: The APNs or FCM device token to which a push challenge can
             be sent
+          nullable: true
         pushTokenType:
           type: string
           description: The type of push token
+          nullable: true
           enum:
           - apn
           - fcm
         pushChallenge:
           type: string
           description: Value received by the device in the push challenge
+          nullable: true
         captcha:
           type: string
           description: Captcha token returned after solving a captcha challenge
+          nullable: true
         mcc:
           type: string
           description: Mobile country code of the phone subscriber
+          nullable: true
         mnc:
           type: string
           description: Mobile network code of the phone subscriber
+          nullable: true
     UpdateVerificationSessionRequest:
       type: object
       properties:
@@ -6553,24 +6616,30 @@ components:
           type: string
           description: The APNs or FCM device token to which a push challenge can
             be sent
+          nullable: true
         pushTokenType:
           type: string
           description: The type of push token
+          nullable: true
           enum:
           - apn
           - fcm
         pushChallenge:
           type: string
           description: Value received by the device in the push challenge
+          nullable: true
         captcha:
           type: string
           description: Captcha token returned after solving a captcha challenge
+          nullable: true
         mcc:
           type: string
           description: Mobile country code of the phone subscriber
+          nullable: true
         mnc:
           type: string
           description: Mobile network code of the phone subscriber
+          nullable: true
     SendVerificationCodeFailureResponse:
       type: object
       properties:
